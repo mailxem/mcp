@@ -1,6 +1,6 @@
 {
-  "name": "xem-mail-mcp",
-  "version": "1.0.1",
+  "name": "@xem.email/mcp",
+  "version": "1.0.0",
   "description": "MCP server for XEM Email API operations - send emails, manage campaigns, and contact lists",
   "type": "module",
   "main": "build/index.js",
@@ -34,6 +34,10 @@
   ],
   "author": "xem.email",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mailxem/mcp.git"
