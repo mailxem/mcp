@@ -130,3 +130,9 @@ Tests use a mock HTTP transport and do not send email or change real contacts.
 ## Release order
 
 Deploy the matching Xem API, launch and verify the Compose service, then publish this package with `npm publish --access public` and deploy the website. Version 2.0 is breaking; do not direct users to the old 1.x package for these tools. Run `npm pack --dry-run` before publishing.
+
+### Dashboard assistant tools
+
+The catalog now includes 42 tools: existing campaign/audience/newsletter operations plus templates and starter import, draft signup forms, contact notes/stages/tags, automation inspection/pause, outbox history, and managed-sending readiness/domain checks/pause. All inputs reject workspace overrides. New writes are annotated for client review; the dashboard stages every write before approval.
+
+Managed-sending tools require a current admin-bound Xem assistant credential. Ordinary API keys remain denied by those backend routes. The catalog deliberately does not expose credential issuance, billing, team administration or operator approval. Upgrade the backend with its assistant credential support before using these tools. This change does not deploy the hosted MCP or publish an npm release.

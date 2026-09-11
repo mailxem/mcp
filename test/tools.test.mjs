@@ -11,7 +11,7 @@ const api = new XemClient({ apiKey: "secret" }, async (url, options) => {
 });
 const tools = createTools(api);
 test("tool schemas do not expose credentials or workspace overrides", () => {
-  assert.equal(tools.size, 21);
+  assert.equal(tools.size, 42);
   for (const { tool } of tools.values()) {
     assert.equal(tool.inputSchema.type, "object");
     assert.equal(tool.inputSchema.additionalProperties, false);
@@ -85,13 +85,11 @@ test("invalid CSV never writes and imports default to preview", async () => {
       .execute({ listId: id, csv: "Email\nbad", mappings: { email: "Email" } }),
   );
   assert.equal(calls.length, before);
-  await tools
-    .get("import_contacts")
-    .execute({
-      listId: id,
-      csv: "Email\na@b.com",
-      mappings: { email: "Email" },
-    });
+  await tools.get("import_contacts").execute({
+    listId: id,
+    csv: "Email\na@b.com",
+    mappings: { email: "Email" },
+  });
   assert.deepEqual(JSON.parse(calls.at(-1).options.body), {
     listId: id,
     contacts: [{ email: "a@b.com" }],
@@ -128,4 +126,27 @@ test("redact upstream failures; handle 204 without JSON; forbid remote HTTP", as
     () =>
       new XemClient({ token: "s", baseUrl: "https://user:pass@example.com" }),
   );
+});
+
+test("assistant tools cannot publish forms or override workspace scope", async () => {
+  const input = {
+    name: "Signup",
+    listId: id,
+    fields: [{ label: "Email", key: "email", type: "EMAIL", required: true }],
+  };
+  await tools.get("create_form").execute(input);
+  assert.equal(JSON.parse(calls.at(-1).options.body).status, "DRAFT");
+  await assert.rejects(
+    tools.get("create_form").execute({ ...input, status: "PUBLISHED" }),
+  );
+  await assert.rejects(tools.get("get_sending_status").execute({ teamId: id }));
+  await assert.rejects(
+    tools.get("pause_automation").execute({ automationId: "../../other" }),
+  );
+});
+test("tag replacement and dispatch resumption are annotated as destructive", () => {
+  for (const name of ["set_contact_tags", "set_sending_paused"]) {
+    assert.equal(tools.get(name).tool.annotations.readOnlyHint, false);
+    assert.equal(tools.get(name).tool.annotations.destructiveHint, true);
+  }
 });
