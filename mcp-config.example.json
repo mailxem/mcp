@@ -1,11 +1,9 @@
 {
   "mcpServers": {
-    "xem-email": {
-      "command": "node",
-      "args": ["/Users/theboringhumane/Projects/posthoot/mcp/build/index.js"],
-      "env": {
-        "XEM_API_TOKEN": "your-api-token-here",
-        "XEM_TEAM_ID": "your-team-id-here"
+    "xem": {
+      "url": "https://mcp.xem.email/mcp",
+      "headers": {
+        "Authorization": "Bearer your-workspace-api-key"
       }
     }
   }
