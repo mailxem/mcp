@@ -53,9 +53,22 @@ jobs:
             --publish 127.0.0.1:39090:3000 \
             --env XEM_MCP_PUBLIC_URL=http://127.0.0.1:39090/mcp \
             xem-mcp:test
-          trap 'docker rm --force xem-mcp-test >/dev/null' EXIT
-          curl --fail --retry 10 --retry-connrefused --retry-delay 1 http://127.0.0.1:39090/health
-          status=$(curl --silent --output /dev/null --write-out '%{http_code}' \
+          cleanup() {
+            result=$?
+            if [ "$result" -ne 0 ]; then
+              docker logs xem-mcp-test || true
+              docker inspect --format '{{json .State}}' xem-mcp-test || true
+            fi
+            docker rm --force xem-mcp-test >/dev/null || true
+            exit "$result"
+          }
+          trap cleanup EXIT
+          # Docker can reset connections while Node is still starting.
+          # Retry only the read-only health probe, with bounded attempt times.
+          curl --fail --silent --show-error --retry 10 --retry-all-errors \
+            --retry-delay 1 --retry-max-time 30 --connect-timeout 2 --max-time 3 \
+            http://127.0.0.1:39090/health
+          status=$(curl --silent --show-error --connect-timeout 2 --max-time 3 --output /dev/null --write-out '%{http_code}' \
             --header 'Content-Type: application/json' --data '{}' http://127.0.0.1:39090/mcp)
           test "$status" = 401
 
